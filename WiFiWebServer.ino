@@ -16,8 +16,8 @@
  *  server_ip is the IP address of the ESP8266 module, will be 
  *  printed to Serial when the module is connected.
  *  
- *  
- *  Gateway for Android ip: 192.168.43.1
+ *  IPs
+ *  Gateway for my Android tethering: 192.168.43.1
  *  Mask 255.255.255.0
  */
 
@@ -34,12 +34,7 @@ IPAddress ip(192, 168, 43, 20);
 IPAddress gateway(192, 168, 43, 1); 
 IPAddress mask(255, 255, 255, 0);
 
-void setup() {
-  Serial.begin(9600);
-    if (!bmp.begin()) {
-      Serial.println("Could not find a valid BMP085 sensor, check wiring!");
-      while (1) {}
-  }
+void wifi_polaczenie(void) {
   delay(10);
   WiFi.config(ip, gateway, mask);
   // prepare GPIO2
@@ -69,6 +64,15 @@ void setup() {
   Serial.println(WiFi.localIP());
 }
 
+void setup() {
+  Serial.begin(9600);
+    if (!bmp.begin()) {
+      Serial.println("Could not find a valid BMP085 sensor, check wiring!");
+      while (1) {}
+  }
+  wifi_polaczenie();
+}
+
 void loop() {
   // Check if a client has connected
   WiFiClient client = server.available();
@@ -86,34 +90,37 @@ void loop() {
     
     // Match the request
     int val;
-    if (req.indexOf("/gpio/1") != -1)
+    if (req.indexOf("/gpio/1") != -1){
       val = 0;
-    else if (req.indexOf("/gpio/0") != -1)
-      val = 1;
+      digitalWrite(LED_BUILTIN, 0);
+    }
+    else if (req.indexOf("/gpio/0") != -1){
+      digitalWrite(LED_BUILTIN, 1);
+    }
     else {
-      client.flush();
-      String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>\r\nTemperatura: ";
-      s += bmp.readTemperature();
-      s += " *C";  
-      s += "      Cisnienie = " ;
-      s += (1800+ bmp.readPressure())/100; 
-      s += " hPa";   
-      s += "</html>\n";
-      // Send the response to the client
-      client.print(s);
-      delay(1);
-      Serial.println("Client disonnected");
-      return;
+//      client.flush();
+//      String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>\r\nTemperatura: ";
+//      s += bmp.readTemperature();
+//      s += " *C";  
+//      s += "      Cisnienie = " ;
+//      s += (1800+ bmp.readPressure())/100; 
+//      s += " hPa";   
+//      s += "</html>\n";
+//      // Send the response to the client
+//      client.print(s);
+//      delay(1);
+//      Serial.println("Client disonnected");
+//      return;
     }
   
     // Set GPIO2 according to the request
-    digitalWrite(LED_BUILTIN, val);
+
     
     client.flush();
   
     // Prepare the response
-    String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>\r\nGPIO is now ";
-    s += (val)?"low":"high";
+    String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>\r\n <form action=""http://192.168.43.20/gpio/1""> <input type=""submit"" value=""GPIO_ON"" style=""height:160px; width:240px"" /></form> <br> ";
+    s += "<form action=""http://192.168.43.20/gpio/0""><input type=""submit"" value=""GPIO_OFF"" style=""height:160px; width:240px""/></form>";
     s += "</html>\n";
   
     // Send the response to the client
@@ -122,4 +129,3 @@ void loop() {
     Serial.println("Client disonnected");
   }
 }
-
