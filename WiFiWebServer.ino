@@ -93,39 +93,31 @@ void loop() {
     if (req.indexOf("/gpio/1") != -1){
       val = 0;
       digitalWrite(LED_BUILTIN, 0);
+      String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+      client.print(s);
+      return;
     }
-    else if (req.indexOf("/gpio/0") != -1){
+    if (req.indexOf("/gpio/0") != -1){
       digitalWrite(LED_BUILTIN, 1);
+      String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+      client.print(s);
+      return;
+    } 
+    if (req.indexOf("/temp/") != -1) {
+      client.flush();
+     String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+      s += bmp.readTemperature();
+      // Send the response to the client
+      client.print(s);
+      return;
+    } 
+    if (req.indexOf("/press/") != -1) {
+      client.flush();
+      String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n";
+      s += (1800+ bmp.readPressure())/100; 
+      // Send the response to the client
+      client.print(s);
+      return;
     }
-    else {
-//      client.flush();
-//      String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>\r\nTemperatura: ";
-//      s += bmp.readTemperature();
-//      s += " *C";  
-//      s += "      Cisnienie = " ;
-//      s += (1800+ bmp.readPressure())/100; 
-//      s += " hPa";   
-//      s += "</html>\n";
-//      // Send the response to the client
-//      client.print(s);
-//      delay(1);
-//      Serial.println("Client disonnected");
-//      return;
-    }
-  
-    // Set GPIO2 according to the request
-
-    
-    client.flush();
-  
-    // Prepare the response
-    String s = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\r\n<!DOCTYPE HTML>\r\n<html>\r\n <form action=""http://192.168.43.20/gpio/1""> <input type=""submit"" value=""GPIO_ON"" style=""height:160px; width:240px"" /></form> <br> ";
-    s += "<form action=""http://192.168.43.20/gpio/0""><input type=""submit"" value=""GPIO_OFF"" style=""height:160px; width:240px""/></form>";
-    s += "</html>\n";
-  
-    // Send the response to the client
-    client.print(s);
-    delay(1);
-    Serial.println("Client disonnected");
   }
 }
